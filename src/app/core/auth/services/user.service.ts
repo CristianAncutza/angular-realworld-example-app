@@ -6,6 +6,7 @@ import { map, distinctUntilChanged, tap, shareReplay, catchError } from 'rxjs/op
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { User } from '../user.model';
 import { Router } from '@angular/router';
+import { environment } from 'src/environments/environment';
 
 export type AuthState = 'authenticated' | 'unauthenticated' | 'unavailable' | 'loading';
 
@@ -43,7 +44,11 @@ export type AuthState = 'authenticated' | 'unauthenticated' | 'unavailable' | 'l
  *
  * For other endpoints (not /user), 401 errors are caught by errorInterceptor
  * which calls purgeAuth() - this handles "token expired mid-session" scenarios.
+ *
  */
+
+// Asegúrate de que el HttpClient esté inyectado en el constructor
+
 @Injectable({ providedIn: 'root' })
 export class UserService {
   private currentUserSubject = new BehaviorSubject<User | null>(null);
@@ -72,13 +77,17 @@ export class UserService {
   ) {}
 
   login(credentials: { email: string; password: string }): Observable<{ user: User }> {
+    debugger;
     return this.http
-      .post<{ user: User }>('/users/login', { user: credentials })
+      .post<{ user: User }>(`${environment.api_url}/users/login`, { user: credentials })
       .pipe(tap(({ user }) => this.setAuth(user)));
   }
 
   register(credentials: { username: string; email: string; password: string }): Observable<{ user: User }> {
-    return this.http.post<{ user: User }>('/users', { user: credentials }).pipe(tap(({ user }) => this.setAuth(user)));
+    debugger;
+    return this.http
+      .post<{ user: User }>(`${environment.api_url}/users`, { user: credentials })
+      .pipe(tap(({ user }) => this.setAuth(user)));
   }
 
   logout(): void {

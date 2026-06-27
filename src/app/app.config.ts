@@ -5,7 +5,7 @@ import { routes } from './app.routes';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { JwtService } from './core/auth/services/jwt.service';
 import { UserService, AuthState } from './core/auth/services/user.service';
-import { apiInterceptor } from './core/interceptors/api.interceptor';
+
 import { tokenInterceptor } from './core/interceptors/token.interceptor';
 import { errorInterceptor } from './core/interceptors/error.interceptor';
 import { EMPTY } from 'rxjs';
@@ -70,7 +70,7 @@ export const appConfig: ApplicationConfig = {
   providers: [
     provideZonelessChangeDetection(),
     provideRouter(routes),
-    provideHttpClient(withInterceptors([apiInterceptor, tokenInterceptor, errorInterceptor])),
+
     provideAppInitializer(() => {
       const initializerFn = initAuth(inject(JwtService), inject(UserService));
       return initializerFn();
