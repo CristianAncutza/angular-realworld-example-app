@@ -96,7 +96,7 @@ export class UserService {
   }
 
   getCurrentUser(): Observable<{ user: User }> {
-    return this.http.get<{ user: User }>('/user').pipe(
+    return this.http.get<{ user: User }>(`${environment.api_url}/user`).pipe(
       tap({
         next: ({ user }) => this.setAuth(user),
         error: (err: HttpErrorResponse) => this.handleAuthError(err),
@@ -165,7 +165,7 @@ export class UserService {
   }
 
   update(user: Partial<User>): Observable<{ user: User }> {
-    return this.http.put<{ user: User }>('/user', { user }).pipe(
+    return this.http.put<{ user: User }>(`${environment.api_url}/user`, { user }).pipe(
       tap(({ user }) => {
         this.currentUserSubject.next(user);
       }),

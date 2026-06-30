@@ -36,7 +36,9 @@ export class ArticlesService {
   }
 
   create(article: Partial<Article>): Observable<Article> {
-    return this.http.post<{ article: Article }>('/articles', { article: article }).pipe(map(data => data.article));
+    return this.http
+      .post<{ article: Article }>(`${environment.api_url}/articles`, { article: article })
+      .pipe(map(data => data.article));
   }
 
   update(article: Partial<Article>): Observable<Article> {
@@ -48,10 +50,12 @@ export class ArticlesService {
   }
 
   favorite(slug: string): Observable<Article> {
-    return this.http.post<{ article: Article }>(`/articles/${slug}/favorite`, {}).pipe(map(data => data.article));
+    return this.http
+      .post<{ article: Article }>(`${environment.api_url}/articles/${slug}/favorite`, {})
+      .pipe(map(data => data.article));
   }
 
   unfavorite(slug: string): Observable<void> {
-    return this.http.delete<void>(`/articles/${slug}/favorite`);
+    return this.http.delete<void>(`${environment.api_url}/articles/${slug}/favorite`);
   }
 }
