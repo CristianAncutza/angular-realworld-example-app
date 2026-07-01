@@ -2,9 +2,8 @@ name: Angular CI (Integración Continua)
 
 on:
   push:
-    branches: [ main, master ]
+    branches: ["**"] # Reacciona a Pushes en CUALQUIER rama
   pull_request:
-    branches: [ main, master ]
 
 jobs:
   build-and-test:
