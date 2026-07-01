@@ -1,15 +1,23 @@
-import { ApplicationConfig, inject, provideAppInitializer, provideZonelessChangeDetection } from '@angular/core';
+import {
+  ApplicationConfig,
+  effect,
+  inject,
+  provideAppInitializer,
+  provideZonelessChangeDetection,
+} from '@angular/core';
 import { provideRouter } from '@angular/router';
 
 import { routes } from './app.routes';
-import { provideHttpClient, withInterceptors } from '@angular/common/http';
+import { HTTP_INTERCEPTORS, provideHttpClient, withInterceptors, withInterceptorsFromDi } from '@angular/common/http';
 import { JwtService } from './core/auth/services/jwt.service';
 import { UserService, AuthState } from './core/auth/services/user.service';
-import { apiInterceptor } from './core/interceptors/api.interceptor';
+
 import { tokenInterceptor } from './core/interceptors/token.interceptor';
-import { errorInterceptor } from './core/interceptors/error.interceptor';
+
 import { EMPTY } from 'rxjs';
 import { User } from './core/auth/user.model';
+import { errorInterceptor } from './core/interceptors/error.interceptor';
+import { provideToastr } from 'ngx-toastr';
 
 /**
  * Debug interface for testing - exposes app state in a framework-agnostic way.
@@ -35,7 +43,9 @@ function setupDebugInterface(jwtService: JwtService, userService: UserService): 
   let currentUser: User | null = null;
 
   userService.authState.subscribe(state => (currentAuthState = state));
-  userService.currentUser.subscribe(user => (currentUser = user));
+  effect(() => {
+    currentUser = userService.currentUser();
+  });
 
   window.__conduit_debug__ = {
     getToken: () => jwtService.getToken(),
@@ -70,7 +80,23 @@ export const appConfig: ApplicationConfig = {
   providers: [
     provideZonelessChangeDetection(),
     provideRouter(routes),
-    provideHttpClient(withInterceptors([apiInterceptor, tokenInterceptor, errorInterceptor])),
+
+    // 2. UNIFICAMOS TODOS LOS INTERCEPTORES EN UN SOLO PROVIDER
+    provideHttpClient(
+      withInterceptors([
+        tokenInterceptor,
+        errorInterceptor, // Ambos interceptores funcionales van juntos aquí
+      ]),
+      withInterceptorsFromDi(), // Solo si todavía te queda algún interceptor viejo basado en clases
+    ),
+
+    // 3. REGISTRAMOS TOASTR PARA ELIMINAR EL ERROR NG0201
+    provideToastr({
+      timeOut: 3000,
+      positionClass: 'toast-top-right',
+      preventDuplicates: true,
+    }),
+
     provideAppInitializer(() => {
       const initializerFn = initAuth(inject(JwtService), inject(UserService));
       return initializerFn();

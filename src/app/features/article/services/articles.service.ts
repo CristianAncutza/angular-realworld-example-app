@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { ArticleListConfig } from '../models/article-list-config.model';
 import { Article } from '../models/article.model';
+import { environment } from 'src/environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class ArticlesService {
@@ -19,13 +20,15 @@ export class ArticlesService {
     });
 
     return this.http.get<{ articles: Article[]; articlesCount: number }>(
-      '/articles' + (config.type === 'feed' ? '/feed' : ''),
+      `${environment.api_url}/articles` + (config.type === 'feed' ? '/feed' : ''),
       { params },
     );
   }
 
   get(slug: string): Observable<Article> {
-    return this.http.get<{ article: Article }>(`/articles/${slug}`).pipe(map(data => data.article));
+    return this.http
+      .get<{ article: Article }>(`${environment.api_url}/articles/${slug}`)
+      .pipe(map(data => data.article));
   }
 
   delete(slug: string): Observable<void> {
@@ -33,7 +36,9 @@ export class ArticlesService {
   }
 
   create(article: Partial<Article>): Observable<Article> {
-    return this.http.post<{ article: Article }>('/articles', { article: article }).pipe(map(data => data.article));
+    return this.http
+      .post<{ article: Article }>(`${environment.api_url}/articles`, { article: article })
+      .pipe(map(data => data.article));
   }
 
   update(article: Partial<Article>): Observable<Article> {
@@ -45,10 +50,12 @@ export class ArticlesService {
   }
 
   favorite(slug: string): Observable<Article> {
-    return this.http.post<{ article: Article }>(`/articles/${slug}/favorite`, {}).pipe(map(data => data.article));
+    return this.http
+      .post<{ article: Article }>(`${environment.api_url}/articles/${slug}/favorite`, {})
+      .pipe(map(data => data.article));
   }
 
   unfavorite(slug: string): Observable<void> {
-    return this.http.delete<void>(`/articles/${slug}/favorite`);
+    return this.http.delete<void>(`${environment.api_url}/articles/${slug}/favorite`);
   }
 }

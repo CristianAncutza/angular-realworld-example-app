@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output, computed, inject } from '@angular/core';
 import { UserService } from '../../../core/auth/services/user.service';
 import { User } from '../../../core/auth/user.model';
 import { RouterLink } from '@angular/router';
@@ -28,7 +28,7 @@ import { DefaultImagePipe } from '../../../shared/pipes/default-image.pipe';
           <span class="date-posted">
             {{ comment.createdAt | date: 'longDate' }}
           </span>
-          @if (canModify$ | async) {
+          @if (canModify()) {
             <span class="mod-options">
               <i class="ion-trash-a" (click)="delete.emit(true)"></i>
             </span>
@@ -37,14 +37,15 @@ import { DefaultImagePipe } from '../../../shared/pipes/default-image.pipe';
       </div>
     }
   `,
-  imports: [RouterLink, DatePipe, AsyncPipe, DefaultImagePipe],
+  imports: [RouterLink, DatePipe, DefaultImagePipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ArticleCommentComponent {
   @Input() comment!: Comment;
   @Output() delete = new EventEmitter<boolean>();
 
-  canModify$ = inject(UserService).currentUser.pipe(
-    map((userData: User | null) => userData?.username === this.comment.author.username),
-  );
+  canModify = computed(() => {
+    const user = inject(UserService).currentUser();
+    return user?.username === this.comment.author.username; // Ajusta según tu lógica exacta
+  });
 }

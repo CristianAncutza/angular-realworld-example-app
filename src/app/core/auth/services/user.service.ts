@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { computed, Injectable, signal } from '@angular/core';
 import { Observable, BehaviorSubject, EMPTY, Subscription, timer } from 'rxjs';
 
 import { JwtService } from './jwt.service';
@@ -6,6 +6,7 @@ import { map, distinctUntilChanged, tap, shareReplay, catchError } from 'rxjs/op
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { User } from '../user.model';
 import { Router } from '@angular/router';
+import { environment } from 'src/environments/environment';
 
 export type AuthState = 'authenticated' | 'unauthenticated' | 'unavailable' | 'loading';
 
@@ -43,23 +44,29 @@ export type AuthState = 'authenticated' | 'unauthenticated' | 'unavailable' | 'l
  *
  * For other endpoints (not /user), 401 errors are caught by errorInterceptor
  * which calls purgeAuth() - this handles "token expired mid-session" scenarios.
+ *
  */
+
+// Asegúrate de que el HttpClient esté inyectado en el constructor
+
 @Injectable({ providedIn: 'root' })
 export class UserService {
-  private currentUserSubject = new BehaviorSubject<User | null>(null);
-  public currentUser = this.currentUserSubject.asObservable().pipe(distinctUntilChanged());
+  //private currentUser = new BehaviorSubject<User | null>(null);
+  //public currentUser = this.currentUser.asObservable().pipe(distinctUntilChanged());
+
+  public currentUser = signal<User | null>(null);
 
   private authStateSubject = new BehaviorSubject<AuthState>('loading');
   public authState = this.authStateSubject.asObservable().pipe(distinctUntilChanged());
 
-  public isAuthenticated = this.currentUser.pipe(map(user => !!user));
+  public isAuthenticated = computed(() => !!this.currentUser());
 
   /**
    * Synchronously get the current cached user value.
    * Returns null if not authenticated or still loading.
    */
   getCurrentUserSync(): User | null {
-    return this.currentUserSubject.getValue();
+    return this.currentUser();
   }
 
   private retryAttempt = 0;
@@ -73,12 +80,14 @@ export class UserService {
 
   login(credentials: { email: string; password: string }): Observable<{ user: User }> {
     return this.http
-      .post<{ user: User }>('/users/login', { user: credentials })
+      .post<{ user: User }>(`${environment.api_url}/users/login`, { user: credentials })
       .pipe(tap(({ user }) => this.setAuth(user)));
   }
 
   register(credentials: { username: string; email: string; password: string }): Observable<{ user: User }> {
-    return this.http.post<{ user: User }>('/users', { user: credentials }).pipe(tap(({ user }) => this.setAuth(user)));
+    return this.http
+      .post<{ user: User }>(`${environment.api_url}/users`, { user: credentials })
+      .pipe(tap(({ user }) => this.setAuth(user)));
   }
 
   logout(): void {
@@ -87,7 +96,7 @@ export class UserService {
   }
 
   getCurrentUser(): Observable<{ user: User }> {
-    return this.http.get<{ user: User }>('/user').pipe(
+    return this.http.get<{ user: User }>(`${environment.api_url}/user`).pipe(
       tap({
         next: ({ user }) => this.setAuth(user),
         error: (err: HttpErrorResponse) => this.handleAuthError(err),
@@ -118,7 +127,7 @@ export class UserService {
    * Set auth state to unavailable (server error, but keep token for retry)
    */
   private setAuthUnavailable(): void {
-    this.currentUserSubject.next(null);
+    this.currentUser.set(null);
     this.authStateSubject.next('unavailable');
     this.scheduleRetry();
   }
@@ -156,9 +165,9 @@ export class UserService {
   }
 
   update(user: Partial<User>): Observable<{ user: User }> {
-    return this.http.put<{ user: User }>('/user', { user }).pipe(
+    return this.http.put<{ user: User }>(`${environment.api_url}/user`, { user }).pipe(
       tap(({ user }) => {
-        this.currentUserSubject.next(user);
+        this.currentUser.set(user);
       }),
     );
   }
@@ -167,7 +176,7 @@ export class UserService {
     this.cancelRetry();
     this.retryAttempt = 0;
     this.jwtService.saveToken(user.token);
-    this.currentUserSubject.next(user);
+    this.currentUser.set(user);
     this.authStateSubject.next('authenticated');
   }
 
@@ -175,7 +184,7 @@ export class UserService {
     this.cancelRetry();
     this.retryAttempt = 0;
     this.jwtService.destroyToken();
-    this.currentUserSubject.next(null);
+    this.currentUser.set(null);
     this.authStateSubject.next('unauthenticated');
   }
 }

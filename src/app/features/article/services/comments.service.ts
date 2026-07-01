@@ -3,6 +3,7 @@ import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { HttpClient } from '@angular/common/http';
 import { Comment } from '../models/comment.model';
+import { environment } from 'src/environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class CommentsService {

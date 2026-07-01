@@ -5,7 +5,7 @@ import { combineLatest, EMPTY, of } from 'rxjs';
 import { UserService } from '../../../../core/auth/services/user.service';
 import { Profile } from '../../models/profile.model';
 import { ProfileService } from '../../services/profile.service';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { FollowButtonComponent } from '../../components/follow-button.component';
 import { Errors } from '../../../../core/models/errors.model';
 import { ListErrorsComponent } from '../../../../shared/components/list-errors.component';
@@ -38,26 +38,43 @@ export class ProfileComponent implements OnInit {
     private readonly profileService: ProfileService,
   ) {}
 
+  onToggleFollowing(following: boolean) {
+    const currentProfile = this.profile();
+
+    if (currentProfile) {
+      // Actualizamos el Signal del perfil manteniendo los datos anteriores
+      // pero cambiando el estado de "following"
+      this.profile.set({
+        ...currentProfile,
+        following: following,
+      });
+    }
+  }
+
   ngOnInit() {
     this.profileService
-      .get(this.route.snapshot.params['username'])
+      .get(this.route.snapshot.params['username']) // 1. Obtenemos el perfil de la URL
       .pipe(
         catchError(error => {
           this.errors.set(error.errors || { error: ['Failed to load profile'] });
           return EMPTY;
         }),
+        // 2. Cuando llega el perfil, lo combinamos con el Signal convertido a Observable
         switchMap(profile => {
-          return combineLatest([of(profile), this.userService.currentUser]);
+          return combineLatest([
+            of(profile),
+            toObservable(this.userService.currentUser), // <-- Conversión clave aquí adentro
+          ]);
         }),
         takeUntilDestroyed(this.destroyRef),
       )
+      // 3. Nos suscribimos al resultado unificado
       .subscribe(([profile, user]) => {
         this.profile.set(profile);
-        this.isUser.set(profile.username === user?.username);
-      });
-  }
 
-  onToggleFollowing(profile: Profile) {
-    this.profile.set(profile);
+        // 4. Evaluamos si es nuestro propio perfil
+        const isCurrentUser = profile.username === user?.username;
+        this.isUser.set(isCurrentUser);
+      });
   }
 }

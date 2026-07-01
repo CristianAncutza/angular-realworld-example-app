@@ -7,7 +7,7 @@ import { ArticlesService } from '../../services/articles.service';
 import { CommentsService } from '../../services/comments.service';
 import { UserService } from '../../../../core/auth/services/user.service';
 import { ArticleMetaComponent } from '../../components/article-meta.component';
-import { AsyncPipe, NgClass } from '@angular/common';
+import { NgClass } from '@angular/common';
 import { MarkdownPipe } from '../../../../shared/pipes/markdown.pipe';
 import { ListErrorsComponent } from '../../../../shared/components/list-errors.component';
 import { ArticleCommentComponent } from '../../components/article-comment.component';
@@ -17,7 +17,7 @@ import { Comment } from '../../models/comment.model';
 import { IfAuthenticatedDirective } from '../../../../core/auth/if-authenticated.directive';
 import { Errors } from '../../../../core/models/errors.model';
 import { Profile } from '../../../profile/models/profile.model';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { FavoriteButtonComponent } from '../../components/favorite-button.component';
 import { FollowButtonComponent } from '../../../profile/components/follow-button.component';
 import { DefaultImagePipe } from '../../../../shared/pipes/default-image.pipe';
@@ -32,7 +32,6 @@ import { DefaultImagePipe } from '../../../../shared/pipes/default-image.pipe';
     FollowButtonComponent,
     FavoriteButtonComponent,
     MarkdownPipe,
-    AsyncPipe,
     ListErrorsComponent,
     FormsModule,
     ArticleCommentComponent,
@@ -67,10 +66,15 @@ export default class ArticleComponent implements OnInit {
 
   ngOnInit(): void {
     const slug = this.route.snapshot.params['slug'];
-    combineLatest([this.articleService.get(slug), this.commentsService.getAll(slug), this.userService.currentUser])
+
+    combineLatest([
+      this.articleService.get(slug),
+      this.commentsService.getAll(slug), // <-- Cambiado a '.getAll' que es el método real de Conduit
+      toObservable(this.userService.currentUser),
+    ])
       .pipe(
         catchError(err => {
-          this.errors.set(err.errors || { error: ['Failed to load article'] });
+          this.errors.set(err.errors || { error: ['Error loading article data'] });
           return EMPTY;
         }),
         takeUntilDestroyed(this.destroyRef),
