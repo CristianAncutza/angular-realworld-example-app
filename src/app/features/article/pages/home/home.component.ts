@@ -9,7 +9,7 @@ import { tap } from 'rxjs/operators';
 import { UserService } from '../../../../core/auth/services/user.service';
 import { RxLet } from '@rx-angular/template/let';
 import { IfAuthenticatedDirective } from '../../../../core/auth/if-authenticated.directive';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-home-page',
@@ -39,37 +39,37 @@ export default class HomeComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    combineLatest([this.userService.isAuthenticated, this.route.params, this.route.queryParams])
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(([isAuthenticated, params, queryParams]) => {
-        this.isAuthenticated.set(isAuthenticated);
+    combineLatest([
+      toObservable(this.userService.isAuthenticated), // <-- Conversión aquí
+      this.route.params,
+      this.route.queryParams,
+    ]).subscribe(([isAuthenticated, params, queryParams]) => {
+      this.isAuthenticated.set(isAuthenticated);
+      const tag = params['tag'];
+      const feed = queryParams['feed'];
+      const page = queryParams['page'] ? parseInt(queryParams['page'], 10) : 1;
+      // If feed=following but not authenticated, redirect to login
+      if (feed === 'following' && !isAuthenticated) {
+        void this.router.navigate(['/login']);
+        return;
+      }
 
-        const tag = params['tag'];
-        const feed = queryParams['feed'];
-        const page = queryParams['page'] ? parseInt(queryParams['page'], 10) : 1;
+      let type: string;
+      let filters: { tag?: string } = {};
 
-        // If feed=following but not authenticated, redirect to login
-        if (feed === 'following' && !isAuthenticated) {
-          void this.router.navigate(['/login']);
-          return;
-        }
+      if (tag) {
+        type = 'all';
+        filters = { tag };
+      } else if (feed === 'following') {
+        type = 'feed';
+      } else {
+        type = 'all';
+      }
 
-        let type: string;
-        let filters: { tag?: string } = {};
-
-        if (tag) {
-          type = 'all';
-          filters = { tag };
-        } else if (feed === 'following') {
-          type = 'feed';
-        } else {
-          type = 'all';
-        }
-
-        this.currentPage.set(page);
-        this.listConfig.set({ type, filters });
-        this.isFollowingFeed.set(type === 'feed');
-      });
+      this.currentPage.set(page);
+      this.listConfig.set({ type, filters });
+      this.isFollowingFeed.set(type === 'feed');
+    });
   }
 
   onPageChange(page: number): void {

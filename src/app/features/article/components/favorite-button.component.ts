@@ -48,32 +48,35 @@ export class FavoriteButtonComponent {
   ) {}
 
   toggleFavorite(): void {
+    if (!this.userService.isAuthenticated()) {
+      void this.router.navigate(['/login']);
+      return;
+    }
+
     this.isSubmitting.set(true);
 
-    this.userService.isAuthenticated
-      .pipe(
-        switchMap(authenticated => {
-          if (!authenticated) {
-            void this.router.navigate(['/register']);
-            return EMPTY;
-          }
-
-          if (!this.article.favorited) {
-            return this.articleService.favorite(this.article.slug);
-          } else {
-            return this.articleService.unfavorite(this.article.slug);
-          }
-        }),
-        takeUntilDestroyed(this.destroyRef),
-      )
-      .subscribe({
-        next: () => {
-          this.isSubmitting.set(false);
-          this.toggle.emit(!this.article.favorited);
-        },
-        error: () => {
-          this.isSubmitting.set(false);
-        },
-      });
+    if (!this.article.favorited) {
+      this.articleService
+        .favorite(this.article.slug)
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe({
+          next: () => {
+            this.isSubmitting.set(false);
+            this.toggle.emit(true);
+          },
+          error: () => this.isSubmitting.set(false),
+        });
+    } else {
+      this.articleService
+        .unfavorite(this.article.slug)
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe({
+          next: () => {
+            this.isSubmitting.set(false);
+            this.toggle.emit(false);
+          },
+          error: () => this.isSubmitting.set(false),
+        });
+    }
   }
 }

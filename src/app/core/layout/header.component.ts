@@ -12,6 +12,6 @@ import { DefaultImagePipe } from '../../shared/pipes/default-image.pipe';
 })
 export class HeaderComponent {
   private userService = inject(UserService);
-  currentUser$ = this.userService.currentUser;
+  currentUser = inject(UserService).currentUser;
   authState$ = this.userService.authState;
 }

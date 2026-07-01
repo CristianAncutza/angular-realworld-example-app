@@ -17,7 +17,7 @@
             <h4>{{ p.username }}</h4>
             <p>{{ p.bio ?? '' }}</p>
             @if (!isUser()) {
-              <app-follow-button [profile]="p" (toggle)="onToggleFollowing($event)" />
+              <app-follow-button [profile]="p" (toggle)="onToggleFollowing($event.following)" />
             }
             @if (isUser()) {
               <a [routerLink]="['/settings']" class="btn btn-sm btn-outline-secondary action-btn">

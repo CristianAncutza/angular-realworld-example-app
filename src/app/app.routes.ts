@@ -2,13 +2,16 @@ import { Router, Routes } from '@angular/router';
 import { inject } from '@angular/core';
 import { UserService } from './core/auth/services/user.service';
 import { map } from 'rxjs/operators';
+import { toObservable } from '@angular/core/rxjs-interop';
 
 /**
  * Guard that requires authentication. Redirects to /login if not authenticated.
  */
 const requireAuth = () => {
   const router = inject(Router);
-  return inject(UserService).isAuthenticated.pipe(map(isAuth => isAuth || router.createUrlTree(['/login'])));
+  return toObservable(inject(UserService).isAuthenticated).pipe(
+    map(isAuth => isAuth || router.createUrlTree(['/login'])),
+  );
 };
 
 export const routes: Routes = [
@@ -23,12 +26,12 @@ export const routes: Routes = [
   {
     path: 'login',
     loadComponent: () => import('./core/auth/auth.component'),
-    canActivate: [() => inject(UserService).isAuthenticated.pipe(map(isAuth => !isAuth))],
+    canActivate: [() => toObservable(inject(UserService).isAuthenticated).pipe(map(isAuth => !isAuth))],
   },
   {
     path: 'register',
     loadComponent: () => import('./core/auth/auth.component'),
-    canActivate: [() => inject(UserService).isAuthenticated.pipe(map(isAuth => !isAuth))],
+    canActivate: [() => toObservable(inject(UserService).isAuthenticated).pipe(map(isAuth => !isAuth))],
   },
   {
     path: 'settings',
