@@ -20,7 +20,7 @@ jobs:
         cache: 'npm'
 
     - name: 3. Instalar dependencias del proyecto
-      run: npm ci
+      run: npm install
 
     - name: 4. Validar el formato y tipado (Linter/Build)
       run: npm run build -- --configuration=production
