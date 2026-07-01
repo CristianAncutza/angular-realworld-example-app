@@ -79,14 +79,12 @@ export class UserService {
   ) {}
 
   login(credentials: { email: string; password: string }): Observable<{ user: User }> {
-    debugger;
     return this.http
       .post<{ user: User }>(`${environment.api_url}/users/login`, { user: credentials })
       .pipe(tap(({ user }) => this.setAuth(user)));
   }
 
   register(credentials: { username: string; email: string; password: string }): Observable<{ user: User }> {
-    debugger;
     return this.http
       .post<{ user: User }>(`${environment.api_url}/users`, { user: credentials })
       .pipe(tap(({ user }) => this.setAuth(user)));

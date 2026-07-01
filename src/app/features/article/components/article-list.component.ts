@@ -116,6 +116,7 @@ export class ArticleListComponent implements OnChanges {
     if (this.limit) {
       this.query.filters.limit = this.limit;
       this.query.filters.offset = this.limit * (this.page() - 1);
+      this.query.filters.search = this.query.filters.search || '';
     }
 
     this.articlesService

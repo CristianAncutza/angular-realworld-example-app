@@ -7,5 +7,6 @@ export interface ArticleListConfig {
     favorited?: string;
     limit?: number;
     offset?: number;
+    search?: string;
   };
 }

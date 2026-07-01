@@ -54,7 +54,6 @@ export default class SettingsComponent implements OnInit {
   }
 
   logout(): void {
-    debugger;
     this.userService.logout();
   }
 

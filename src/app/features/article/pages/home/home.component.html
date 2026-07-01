@@ -42,7 +42,9 @@
             </li>
           </ul>
         </div>
-
+        <div class="search-bar mb-4">
+          <input type="text" placeholder="Search articles..." [formControl]="searchControl" class="form-control" />
+        </div>
         <app-article-list
           [limit]="10"
           [config]="listConfig()"

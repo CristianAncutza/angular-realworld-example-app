@@ -6,7 +6,6 @@ import { catchError } from 'rxjs/operators';
 
 export const errorInterceptor: HttpInterceptorFn = (req, next) => {
   const toastr = inject(ToastrService);
-  debugger; // <-- Se detendrá aquí en cada petición
 
   return next(req).pipe(
     catchError((error: HttpErrorResponse) => {
