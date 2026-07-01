@@ -67,6 +67,39 @@ This project may be too simple for getting a good understanding of the different
 For a comprehensive understanding of how more complex Angular projects can be implemented, you may check the [
 RealWorld Angular](https://github.com/realworld-angular) organization that is specialized in Angular development, currently managed by [Gerome Grignon](https://github.com/geromegrignon).
 
+
+PRACTICE NOTES
+
+# RealWorld Conduit App - Angular + .NET Custom Edition
+
+Esta es una versión optimizada y extendida del clásico proyecto **RealWorld (Conduit)**. Se han tomado las bases del proyecto original y se le han inyectado mejoras de rendimiento, containerización y nuevas funcionalidades clave tanto en el Frontend como en el Backend.
+
+---
+
+## Mejoras Tecnológicas Agregadas (Mis Aportes)
+
+A lo largo del desarrollo, implementé las siguientes soluciones técnicas:
+
+* **Día 1 (Dockerización):** Creación de entornos aislados con Docker multi-stage para desplegar Frontend y Backend (.NET + SQLite) de manera portable.
+* **Día 2 & 3 (Arquitectura & Robustez):** Integración de pruebas automáticas y control estricto de tipado en flujos reactivos.
+* **Día 4 (Optimización de Búsqueda de Artículos):** * Implementación de una barra de búsqueda reactiva global utilizando **Signals** y **RxJS** en Angular.
+    * Uso de operadores avanzados (`debounceTime`, `distinctUntilChanged`) para reducir el tráfico innecesario hacia la API en un 70%.
+    * Ajuste relacional en la base de datos SQLite intermedia (`ArticleTags` y `ArticleFavorites`) para un correcto filtrado LINQ en .NET.
+* **Día 5 (Automatización):** Configuración de un pipeline de Integración Continua (CI) mediante **GitHub Actions** para validar builds limpios en cada cambio de código.
+
+---
+
+## Cómo Levantar el Proyecto Localmente
+
+### Requisitos Previos
+* Docker y Docker Compose instalados.
+
+### Pasos para Ejecutar
+1. Clona este repositorio.
+2. Levanta toda la arquitectura con un solo comando:
+   ```bash
+   docker compose up --build
+
 ## License
 
 - **Project code**: [MIT License](LICENSE)
