@@ -1,0 +1,31 @@
+name: Angular CI (Integración Continua)
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: 1. Descargar el código del repositorio
+      uses: actions/checkout@v4
+
+    - name: 2. Configurar el entorno de Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-size: '25' # O la versión que estés usando en tu máquina local
+        cache: 'npm'
+
+    - name: 3. Instalar dependencias del proyecto
+      run: npm ci
+
+    - name: 4. Validar el formato y tipado (Linter/Build)
+      run: npm run build -- --configuration=production
+
+    # Descomenta las siguientes líneas si tienes pruebas configuradas en tu package.json
+    # - name: 5. Ejecutar Pruebas Unitarias
+    #   run: npm test -- --watch=false --browsers=ChromeHeadless
